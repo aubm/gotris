@@ -6,33 +6,27 @@ import (
 )
 
 func TestRotate(t *testing.T) {
-	data := []struct {
-		in  []Coords
-		out []Coords
-	}{
-		{
-			[]Coords{{5, 14}, {6, 14}, {5, 13}, {6, 13}, {4, 13}, {4, 14}, {5, 15}, {6, 15}, {7, 13}, {7, 14}},
-			[]Coords{{5, 14}, {5, 13}, {6, 13}, {6, 14}, {6, 12}, {5, 12}, {4, 13}, {4, 14}, {6, 15}, {5, 15}},
-		},
-		{
-			[]Coords{{5, 14}, {5, 13}, {6, 13}, {6, 14}, {6, 12}, {5, 12}, {4, 13}, {4, 14}, {6, 15}, {5, 15}},
-			[]Coords{{5, 14}, {6, 13}, {6, 14}, {5, 13}, {7, 14}, {7, 13}, {6, 12}, {5, 12}, {4, 14}, {4, 13}},
-		},
-		{
-			[]Coords{{5, 14}, {6, 13}, {6, 14}, {5, 13}, {7, 14}, {7, 13}, {6, 12}, {5, 12}, {4, 14}, {4, 13}},
-			[]Coords{{5, 14}, {6, 14}, {5, 13}, {6, 13}, {5, 15}, {6, 15}, {7, 14}, {7, 13}, {5, 12}, {6, 12}},
-		},
-		{
-			[]Coords{{5, 14}, {6, 14}, {5, 13}, {6, 13}, {5, 15}, {6, 15}, {7, 14}, {7, 13}, {5, 12}, {6, 12}},
-			[]Coords{{5, 14}, {5, 13}, {6, 13}, {6, 14}, {4, 13}, {4, 14}, {5, 15}, {6, 15}, {7, 13}, {7, 14}},
-		},
+	shape := T(Coords{4, 10})
+	expectedCoords := [][]Coords{
+		[]Coords{Coords{5, 11}, Coords{5, 10}, Coords{5, 9}, Coords{6, 10}},
+		[]Coords{Coords{4, 10}, Coords{5, 10}, Coords{6, 10}, Coords{5, 9}},
+		[]Coords{Coords{5, 11}, Coords{5, 10}, Coords{5, 9}, Coords{4, 10}},
+		[]Coords{Coords{4, 10}, Coords{5, 10}, Coords{6, 10}, Coords{5, 11}},
 	}
 
-	for _, d := range data {
-		shape := &shapeT{d.in}
+	for i := 0; i < len(expectedCoords); i++ {
 		Rotate(shape)
-		if reflect.DeepEqual(shape.parts, d.out) == false {
-			t.Errorf("shape.parts == %v, expected %v", shape.parts, d.out)
+		if reflect.DeepEqual(shape.parts, expectedCoords[i]) == false {
+			t.Errorf("rotation nb %v : shape.parts == %v, expected %v", i+1, shape.parts, expectedCoords[i])
 		}
+	}
+}
+
+func TestMoveDown(t *testing.T) {
+	shape := T(Coords{4, 10})
+	out := []Coords{Coords{4, 9}, Coords{5, 9}, Coords{6, 9}, Coords{5, 10}}
+	MoveDown(shape)
+	if reflect.DeepEqual(shape.parts, out) == false {
+		t.Errorf("shape.parts == %v, expected %v", shape.parts, out)
 	}
 }

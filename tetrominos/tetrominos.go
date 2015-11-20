@@ -1,42 +1,31 @@
 package tetrominos
 
-// Tetromino represents four parts that form a
-// piece of the game
-type Tetromino interface {
-	Parts() []Coords
-	SetParts(parts []Coords)
-}
-
 // Coords represents a pair of cartesian coordinates
 type Coords struct {
 	X int
 	Y int
 }
 
-type shapeT struct {
-	parts []Coords
+// Tetromino represents parts that form a piece of the game
+type Tetromino struct {
+	parts        []Coords
+	translations [][]Coords
 }
 
-func (s shapeT) Parts() []Coords {
-	return s.parts
-}
-
-func (s *shapeT) SetParts(parts []Coords) {
-	s.parts = parts
+// Parts returns parts that compose the tetromino
+func (t Tetromino) Parts() []Coords {
+	return t.parts
 }
 
 // T returns a specific implementation of a Tetromino
-func T(center Coords) Tetromino {
-	return &shapeT{[]Coords{
-		center,
-		Coords{center.X + 1, center.Y},
-		Coords{center.X, center.Y - 1},
-		Coords{center.X + 1, center.Y - 1},
-		Coords{center.X - 1, center.Y - 1},
-		Coords{center.X - 1, center.Y},
-		Coords{center.X, center.Y + 1},
-		Coords{center.X + 1, center.Y + 1},
-		Coords{center.X + 2, center.Y - 1},
-		Coords{center.X + 2, center.Y},
-	}}
+func T(fp Coords) *Tetromino {
+	return &Tetromino{
+		parts: []Coords{fp, Coords{fp.X + 1, fp.Y}, Coords{fp.X + 2, fp.Y}, Coords{fp.X + 1, fp.Y + 1}},
+		translations: [][]Coords{
+			{Coords{1, 1}, Coords{0, 0}, Coords{-1, -1}, Coords{1, -1}},
+			{Coords{-1, -1}, Coords{0, 0}, Coords{1, 1}, Coords{-1, -1}},
+			{Coords{1, 1}, Coords{0, 0}, Coords{-1, -1}, Coords{-1, 1}},
+			{Coords{-1, -1}, Coords{0, 0}, Coords{1, 1}, Coords{1, 1}},
+		},
+	}
 }

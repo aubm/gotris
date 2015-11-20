@@ -1,47 +1,18 @@
 package tetrominos
 
-// Rotate applies a rotation on a tetromino and returns
-// a new transformed one
-func Rotate(t Tetromino) {
-	parts := times10(t.Parts())
-	center := parts[0]
-	var newCenterIndex int
-
-	newParts := []Coords{}
-	for i, part := range parts {
-		transformedPart := Coords{
-			(center.X + 5) - part.Y + (center.Y - 5),
-			(center.Y - 5) + part.X - (center.X + 5),
-		}
-		if transformedPart.X == center.X && transformedPart.Y == center.Y {
-			newCenterIndex = i
-		}
-		newParts = append(newParts, transformedPart)
+// Rotate applies a rotation on a tetromino
+func Rotate(t *Tetromino) {
+	for i, trans := range t.translations[0] {
+		t.parts[i].X += trans.X
+		t.parts[i].Y += trans.Y
 	}
-
-	// replace tetromino's center at index 0
-	newParts[0], newParts[newCenterIndex] = newParts[newCenterIndex], newParts[0]
-	t.SetParts(dividePer10(newParts))
+	t.translations = append(t.translations[1:], t.translations[0])
 }
 
 // MoveDown applies a translation of 1 point bottom
-// on a tetromino and returns a new transformed one
-func MoveDown(t Tetromino) Tetromino {
-	return &shapeT{}
-}
-
-func times10(coords []Coords) []Coords {
-	newCoords := []Coords{}
-	for _, c := range coords {
-		newCoords = append(newCoords, Coords{c.X * 10, c.Y * 10})
+// on a tetromino
+func MoveDown(t *Tetromino) {
+	for i := range t.parts {
+		t.parts[i].Y--
 	}
-	return newCoords
-}
-
-func dividePer10(coords []Coords) []Coords {
-	newCoords := []Coords{}
-	for _, c := range coords {
-		newCoords = append(newCoords, Coords{c.X / 10, c.Y / 10})
-	}
-	return newCoords
 }
