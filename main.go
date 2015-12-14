@@ -2,76 +2,54 @@ package main
 
 import (
 	"fmt"
-	"github.com/aubm/gotris/tetrominos"
+	"log"
 	"os"
 	"os/exec"
-	"time"
+
+	"github.com/aubm/gotris/game"
+	"github.com/aubm/gotris/tetrominos"
+	"github.com/aubm/gotris/ui/ncurses"
 )
 
-type playfield struct {
-	piece  *tetrominos.Tetromino
-	width  int
-	height int
-}
-
-func (p playfield) At(c tetrominos.Coords) int {
-	for _, part := range p.piece.Parts() {
-		if part.X == c.X && part.Y == c.Y {
-			return 1
-		}
-	}
-	return -1
-}
-
-func newStdPlayfield() playfield {
-	return playfield{width: 10, height: 20}
-}
-
 func main() {
-	p := newStdPlayfield()
-	p.piece = tetrominos.T(tetrominos.Coords{3, 18})
+	p := game.NewStdPlayfield()
+	p.Piece = tetrominos.T(tetrominos.Coords{3, 19})
 
-	draw(p)
-	sleep()
-	tetrominos.MoveDown(p.piece)
-	draw(p)
-	sleep()
-	tetrominos.Rotate(p.piece)
-	draw(p)
-	sleep()
-	tetrominos.Rotate(p.piece)
-	draw(p)
-	sleep()
-	tetrominos.Rotate(p.piece)
-	draw(p)
-	sleep()
-	tetrominos.Rotate(p.piece)
-	draw(p)
-	sleep()
-}
+	defer initLoggerOutput().Close()
+	endFunc := ncurses.Init()
+	defer endFunc()
 
-func sleep() {
-	d, _ := time.ParseDuration("1s")
-	time.Sleep(d)
-}
+	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
+	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 
-func clear() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
-}
-
-func draw(p playfield) {
-	clear()
-	for y := p.height - 1; y >= 0; y-- {
-		for x := 0; x < p.width; x++ {
-			if p.At(tetrominos.Coords{x, y}) == 1 {
-				fmt.Print("o ")
-			} else {
-				fmt.Print("- ")
-			}
+	b := make([]byte, 1)
+main:
+	for {
+		ncurses.Render(p)
+		os.Stdin.Read(b)
+		switch string(b) {
+		case "q":
+			break main
+		case "A": // up
+			tetrominos.Rotate(p.Piece)
+		case "C": // right
+			break
+		case "B": // bottom
+			tetrominos.MoveDown(p.Piece)
+		case "D": // left
+			break
 		}
-		fmt.Print("\n")
+		log.Printf("User input : %v", string(b))
 	}
-	fmt.Print("\n\n")
+}
+
+func initLoggerOutput() *os.File {
+	logFileName := "gotris.log"
+	out, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Failed to open %v", logFileName))
+	}
+	log.SetOutput(out)
+	return out
 }
