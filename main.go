@@ -34,11 +34,11 @@ main:
 		case "A": // up
 			tetrominos.Rotate(p.Piece)
 		case "C": // right
-			break
+			tetrominos.MoveRight(p.Piece)
 		case "B": // bottom
 			tetrominos.MoveDown(p.Piece)
 		case "D": // left
-			break
+			tetrominos.MoveLeft(p.Piece)
 		}
 		log.Printf("User input : %v", string(b))
 	}
