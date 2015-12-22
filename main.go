@@ -28,24 +28,32 @@ main:
 	for {
 		ncurses.Render(p, p.Width, p.Height)
 		os.Stdin.Read(b)
-		switch string(b) {
+		c := string(b)
+		switch c {
 		case "q":
 			break main
 		case "A", "k": // up
 			transform = game.Rotate
-		case "C", "l": // right
+		case "C", "l", "L", "$": // right
 			transform = game.MoveRight
-		case "B", "j": // bottom
+		case "B", "j", "J", " ": // bottom
 			transform = game.MoveDown
-		case "D", "h": // left
+		case "D", "h", "H", "0": // left
 			transform = game.MoveLeft
 		default:
 			continue
 		}
-		if transform != nil {
+
+		for {
 			newPiece = transform(p.Piece)
 			if p.Fits(newPiece) {
 				p.Piece = newPiece
+			} else {
+				break
+			}
+
+			if c != "L" && c != "$" && c != " " && c != "J" && c != "H" && c != "0" {
+				break
 			}
 		}
 	}
