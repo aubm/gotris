@@ -1,30 +1,31 @@
 package ncurses
 
-// http://mrcook.uk/how-to-install-go-ncurses-on-mac-osx
-
 import (
 	"log"
 	"math"
 
 	"github.com/aubm/gotris/game"
-	"github.com/aubm/gotris/tetrominos"
 	"github.com/aubm/gotris/ui"
 	gc "github.com/rthornton128/goncurses"
 )
 
 var stdscr *gc.Window
 
+type partsBag interface {
+	Parts() [4]game.Coords
+}
+
 // Render takes a playfield and reprensents it in a terminal
 // using ncurses libraires
-func Render(p game.Playfield) {
-	for _, part := range p.Piece.Parts() {
-		defer drawPart(part, p.Width, p.Height)()
+func Render(p partsBag, width int, height int) {
+	for _, part := range p.Parts() {
+		defer drawPart(part, width, height)()
 	}
 
 	gc.Update()
 }
 
-func drawPart(c tetrominos.Coords, fieldWidth int, fieldHeight int) func() {
+func drawPart(coords game.Coords, fieldWidth int, fieldHeight int) func() {
 	var size int
 	maxY, maxX := stdscr.MaxYX()
 	maxY, maxX = maxY/fieldHeight, maxX/fieldWidth/2
@@ -32,8 +33,8 @@ func drawPart(c tetrominos.Coords, fieldWidth int, fieldHeight int) func() {
 
 	h := size
 	w := h * 2
-	y := (fieldHeight - c.Y) * h
-	x := c.X * w
+	y := (fieldHeight - coords.Y) * h
+	x := coords.X * w
 
 	win, err := gc.NewWindow(h, w, y, x)
 	if err != nil {

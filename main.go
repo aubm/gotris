@@ -7,40 +7,47 @@ import (
 	"os/exec"
 
 	"github.com/aubm/gotris/game"
-	"github.com/aubm/gotris/tetrominos"
 	"github.com/aubm/gotris/ui/ncurses"
 )
 
 func main() {
 	p := game.NewStdPlayfield()
-	p.Piece = tetrominos.T(tetrominos.Coords{3, 19})
+	p.Piece = game.T(game.Coords{3, 19})
 
 	defer initLoggerOutput().Close()
-	endFunc := ncurses.Init()
-	defer endFunc()
+	defer ncurses.Init()()
 
 	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
 	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
 	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 
 	b := make([]byte, 1)
+	var transform game.Transform
+	var newPiece game.Tetromino
 main:
 	for {
-		ncurses.Render(p)
+		ncurses.Render(p, p.Width, p.Height)
 		os.Stdin.Read(b)
 		switch string(b) {
 		case "q":
 			break main
-		case "A": // up
-			tetrominos.Rotate(p.Piece)
-		case "C": // right
-			tetrominos.MoveRight(p.Piece)
-		case "B": // bottom
-			tetrominos.MoveDown(p.Piece)
-		case "D": // left
-			tetrominos.MoveLeft(p.Piece)
+		case "A", "k": // up
+			transform = game.Rotate
+		case "C", "l": // right
+			transform = game.MoveRight
+		case "B", "j": // bottom
+			transform = game.MoveDown
+		case "D", "h": // left
+			transform = game.MoveLeft
+		default:
+			continue
 		}
-		log.Printf("User input : %v", string(b))
+		if transform != nil {
+			newPiece = transform(p.Piece)
+			if p.Fits(newPiece) {
+				p.Piece = newPiece
+			}
+		}
 	}
 }
 
