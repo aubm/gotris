@@ -111,5 +111,11 @@ func initStdscr() {
 
 func initColors() {
 	gc.StartColor()
+	gc.InitPair(game.BLUE, gc.C_BLUE, gc.C_BLUE)
+	gc.InitPair(game.CYAN, gc.C_CYAN, gc.C_CYAN)
+	gc.InitPair(game.GREEN, gc.C_GREEN, gc.C_GREEN)
 	gc.InitPair(game.MAGENTA, gc.C_MAGENTA, gc.C_MAGENTA)
+	gc.InitPair(game.RED, gc.C_RED, gc.C_RED)
+	gc.InitPair(game.WHITE, gc.C_WHITE, gc.C_WHITE)
+	gc.InitPair(game.YELLOW, gc.C_YELLOW, gc.C_YELLOW)
 }

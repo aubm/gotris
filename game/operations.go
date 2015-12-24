@@ -5,11 +5,13 @@ type Transform func(t Tetromino) Tetromino
 
 // Rotate applies a rotation on a tetromino
 func Rotate(t Tetromino) Tetromino {
-	for i, trans := range t.translations[0] {
-		t.parts[i].X += trans.X
-		t.parts[i].Y += trans.Y
+	if len(t.translations) > 0 {
+		for i, trans := range t.translations[0] {
+			t.parts[i].X += trans.X
+			t.parts[i].Y += trans.Y
+		}
+		t.translations = append(t.translations[1:], t.translations[0])
 	}
-	t.translations = append(t.translations[1:], t.translations[0])
 	return t
 }
 
