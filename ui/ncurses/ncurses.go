@@ -5,44 +5,76 @@ import (
 	"math"
 
 	"github.com/aubm/gotris/game"
-	"github.com/aubm/gotris/ui"
 	gc "github.com/rthornton128/goncurses"
 )
 
 var stdscr *gc.Window
 
-type partsBag interface {
-	Parts() [4]game.Coords
+type blocsBag interface {
+	Blocs() []game.Bloc
 }
 
 // Render takes a playfield and reprensents it in a terminal
 // using ncurses libraires
-func Render(p partsBag, width int, height int) {
-	for _, part := range p.Parts() {
-		defer drawPart(part, width, height)()
+func Render(p blocsBag, fieldWidth int, fieldHeight int) {
+	metrics := calculateMetrics(fieldWidth, fieldHeight)
+	defer createWindow(metrics.height*fieldHeight+2, metrics.width*fieldWidth+2,
+		metrics.offsetHeight+metrics.height-1, metrics.offsetWidth-1,
+		0, true)()
+
+	for _, bloc := range p.Blocs() {
+		defer drawBloc(bloc, fieldWidth, fieldHeight)()
 	}
 
 	gc.Update()
 }
 
-func drawPart(coords game.Coords, fieldWidth int, fieldHeight int) func() {
+func drawBloc(bloc game.Bloc, fieldWidth int, fieldHeight int) func() {
+	metrics := calculateMetrics(fieldWidth, fieldHeight)
+
+	y := (fieldHeight-bloc.Y)*metrics.height + metrics.offsetHeight
+	x := bloc.X*metrics.width + metrics.offsetWidth
+
+	return createWindow(metrics.height, metrics.width, y, x, bloc.Code, false)
+}
+
+type metrics struct {
+	width        int
+	height       int
+	offsetWidth  int
+	offsetHeight int
+}
+
+func calculateMetrics(fieldWidth int, fieldHeight int) metrics {
 	var size int
 	maxY, maxX := stdscr.MaxYX()
-	maxY, maxX = maxY/fieldHeight, maxX/fieldWidth/2
-	size = int(math.Min(float64(maxY), float64(maxX)))
-
+	fieldMaxY, fieldMaxX := maxY/fieldHeight, maxX/fieldWidth/2
+	size = int(math.Min(float64(fieldMaxY), float64(fieldMaxX)))
 	h := size
 	w := h * 2
-	y := (fieldHeight - coords.Y) * h
-	x := coords.X * w
+	offsetWidth, offsetHeight := (maxX-fieldWidth*w)/2, 0
+	if maxY-(fieldMaxY*h) >= h {
+		offsetHeight = h
+	}
+	return metrics{
+		width:        w,
+		height:       h,
+		offsetWidth:  offsetWidth,
+		offsetHeight: offsetHeight,
+	}
+}
 
+func createWindow(h, w, y, x, bgColor int, borders bool) func() {
 	win, err := gc.NewWindow(h, w, y, x)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	win.Box(gc.ACS_VLINE, gc.ACS_HLINE)
-	win.SetBackground(gc.Char(' ') | gc.ColorPair(ui.MAGENTA))
+	if bgColor != 0 {
+		win.SetBackground(gc.Char(' ') | gc.ColorPair(int16(bgColor)))
+	}
+	if borders {
+		win.Box(gc.ACS_VLINE, gc.ACS_HLINE)
+	}
 	win.NoutRefresh()
 
 	return func() {
@@ -79,5 +111,5 @@ func initStdscr() {
 
 func initColors() {
 	gc.StartColor()
-	gc.InitPair(ui.MAGENTA, gc.C_MAGENTA, gc.C_MAGENTA)
+	gc.InitPair(game.MAGENTA, gc.C_MAGENTA, gc.C_MAGENTA)
 }

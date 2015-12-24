@@ -1,22 +1,21 @@
 package game
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/aubm/gotris/ui"
 )
 
 func createPlayfield() Playfield {
 	return Playfield{
 		Width:  10,
 		Height: 20,
-		Piece:  Tetromino{parts: [4]Coords{{4, 11}, {5, 11}, {6, 11}, {7, 11}}},
+		Piece:  Tetromino{parts: [4]Coords{{4, 11}, {5, 11}, {6, 11}, {7, 11}}, code: MAGENTA},
 	}
 }
 
 func TestAt(t *testing.T) {
 	in := []Coords{{4, 5}, {7, 11}, {0, 0}, {10, 15}, {5, 20}, {10, 20}, {9, 19}, {-5, 1}}
-	out := []int{Empty, ui.MAGENTA, Empty, OutOfBounds, Empty, OutOfBounds, Empty, OutOfBounds}
+	out := []int{Empty, MAGENTA, Empty, OutOfBounds, Empty, OutOfBounds, Empty, OutOfBounds}
 
 	pf := createPlayfield()
 
@@ -62,5 +61,21 @@ func TestNewStdPlayfield(t *testing.T) {
 
 	if pf.Height != 20 {
 		t.Errorf("pf.Height == %v, expected == 20", pf.Height)
+	}
+}
+
+func TestBlocs(t *testing.T) {
+	pf := createPlayfield()
+	expectedBlocs := []Bloc{
+		{X: 4, Y: 11, Code: MAGENTA},
+		{X: 5, Y: 11, Code: MAGENTA},
+		{X: 6, Y: 11, Code: MAGENTA},
+		{X: 7, Y: 11, Code: MAGENTA},
+	}
+
+	blocs := pf.Blocs()
+
+	if reflect.DeepEqual(blocs, expectedBlocs) == false {
+		t.Errorf("blocs == %v, expected %v", blocs, expectedBlocs)
 	}
 }

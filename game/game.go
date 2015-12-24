@@ -1,7 +1,5 @@
 package game
 
-import "github.com/aubm/gotris/ui"
-
 const (
 	// OutOfBounds is the value returned by At if the given Coords are out of the playfield
 	OutOfBounds = -1
@@ -16,9 +14,20 @@ type Playfield struct {
 	Height int
 }
 
-// Parts returns all parts that make up the playfield
-func (p Playfield) Parts() [4]Coords {
-	return p.Piece.Parts()
+// Bloc represent a playfield fragment to be rendered
+type Bloc struct {
+	X    int
+	Y    int
+	Code int
+}
+
+// Blocs returns all blocs that make up the playfield
+func (p Playfield) Blocs() []Bloc {
+	var blocs []Bloc
+	for _, part := range p.Piece.parts {
+		blocs = append(blocs, Bloc{X: part.X, Y: part.Y, Code: p.Piece.code})
+	}
+	return blocs
 }
 
 // At is used to know if a piece exists at a given coordinate
@@ -27,9 +36,9 @@ func (p Playfield) At(c Coords) int {
 		return OutOfBounds
 	}
 
-	for _, part := range p.Piece.Parts() {
+	for _, part := range p.Piece.parts {
 		if part.X == c.X && part.Y == c.Y {
-			return ui.MAGENTA
+			return p.Piece.code
 		}
 	}
 	return Empty
@@ -38,7 +47,7 @@ func (p Playfield) At(c Coords) int {
 // Fits checks if a given Tetromino can fit the playfield
 func (p Playfield) Fits(piece Tetromino) bool {
 	fakePiece(&p)
-	for _, part := range piece.Parts() {
+	for _, part := range piece.parts {
 		if p.At(part) != Empty {
 			return false
 		}

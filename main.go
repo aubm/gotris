@@ -12,7 +12,7 @@ import (
 
 func main() {
 	p := game.NewStdPlayfield()
-	p.Piece = game.T(game.Coords{3, 19})
+	p.Piece = game.T(game.Coords{3, 18})
 
 	defer initLoggerOutput().Close()
 	defer ncurses.Init()()

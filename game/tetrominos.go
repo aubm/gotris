@@ -10,11 +10,7 @@ type Coords struct {
 type Tetromino struct {
 	parts        [4]Coords
 	translations [][]Coords
-}
-
-// Parts returns parts that compose the tetromino
-func (t Tetromino) Parts() [4]Coords {
-	return t.parts
+	code         int
 }
 
 // T returns a specific implementation of a Tetromino
@@ -27,5 +23,6 @@ func T(fp Coords) Tetromino {
 			{{1, 1}, {0, 0}, {-1, -1}, {-1, 1}},
 			{{-1, -1}, {0, 0}, {1, 1}, {1, 1}},
 		},
+		code: MAGENTA,
 	}
 }
