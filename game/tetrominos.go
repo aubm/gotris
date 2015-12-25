@@ -11,8 +11,7 @@ type Coords struct {
 	Y int
 }
 
-// GetRandomPiece returns a random tetromino
-func GetRandomPiece() Tetromino {
+func getRandomPiece() Tetromino {
 	var piece Tetromino
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	switch r.Intn(6) { // random int between 0 and 6

@@ -19,7 +19,7 @@ func main() {
 	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 
 	p := game.NewStdPlayfield()
-	p.Piece = game.GetRandomPiece()
+	game.ChangeOrInitPiece(&p)
 
 	b := make([]byte, 1)
 	var transform game.Transform
@@ -55,6 +55,10 @@ main:
 			if c != "L" && c != "$" && c != " " && c != "J" && c != "H" && c != "0" {
 				break
 			}
+		}
+
+		if c == " " || c == "J" {
+			game.ChangeOrInitPiece(&p)
 		}
 	}
 }
