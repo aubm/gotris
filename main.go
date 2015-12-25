@@ -5,10 +5,14 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/aubm/gotris/game"
 	"github.com/aubm/gotris/ui/ncurses"
+	"github.com/aubm/interval"
 )
+
+var stopInterval = func() {}
 
 func main() {
 	defer initLoggerOutput().Close()
@@ -19,14 +23,13 @@ func main() {
 	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 
 	p := game.NewStdPlayfield()
-	game.ChangeOrInitPiece(&p)
+	changeOrInitPiece(&p)
 
 	b := make([]byte, 1)
 	var transform game.Transform
-	var newPiece game.Tetromino
 main:
 	for {
-		ncurses.Render(p, p.Width, p.Height)
+		render(p)
 		os.Stdin.Read(b)
 		c := string(b)
 		switch c {
@@ -44,23 +47,46 @@ main:
 			continue
 		}
 
-		for {
-			newPiece = transform(p.Piece)
-			if p.Fits(newPiece) {
-				p.Piece = newPiece
-			} else {
-				break
-			}
-
-			if c != "L" && c != "$" && c != " " && c != "J" && c != "H" && c != "0" {
-				break
-			}
-		}
+		applyTransform(transform, &p, c == "L" || c == "$" || c == " " || c == "J" || c == "H" || c == "0")
 
 		if c == " " || c == "J" {
-			game.ChangeOrInitPiece(&p)
+			changeOrInitPiece(&p)
 		}
 	}
+}
+
+func changeOrInitPiece(p *game.Playfield) {
+	stopInterval()
+	game.ChangeOrInitPiece(p)
+	stopInterval = interval.Start(func() {
+		if applyTransform(game.MoveDown, p, false) == false {
+			changeOrInitPiece(p)
+		}
+		render(*p)
+	}, time.Second)
+}
+
+func applyTransform(transform game.Transform, p *game.Playfield, repeat bool) bool {
+	fits := true
+	var newPiece game.Tetromino
+	for {
+		newPiece = transform(p.Piece)
+		if p.Fits(newPiece) {
+			p.Piece = newPiece
+		} else {
+			fits = false
+			break
+		}
+
+		if !repeat {
+			break
+		}
+	}
+	return fits
+}
+
+func render(p game.Playfield) {
+	ncurses.Render(p, p.Width, p.Height)
 }
 
 func initLoggerOutput() *os.File {
