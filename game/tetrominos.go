@@ -1,9 +1,37 @@
 package game
 
+import (
+	"math/rand"
+	"time"
+)
+
 // Coords represents a pair of cartesian coordinates
 type Coords struct {
 	X int
 	Y int
+}
+
+// GetRandomPiece returns a random tetromino
+func GetRandomPiece() Tetromino {
+	var piece Tetromino
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	switch r.Intn(6) { // random int between 0 and 6
+	case 0:
+		piece = I(Coords{3, 19})
+	case 1:
+		piece = J(Coords{3, 20})
+	case 2:
+		piece = L(Coords{3, 19})
+	case 3:
+		piece = O(Coords{4, 20})
+	case 4:
+		piece = S(Coords{5, 20})
+	case 5:
+		piece = T(Coords{3, 19})
+	case 6:
+		piece = Z(Coords{3, 20})
+	}
+	return piece
 }
 
 // Tetromino represents parts that form a piece of the game

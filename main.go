@@ -11,15 +11,15 @@ import (
 )
 
 func main() {
-	p := game.NewStdPlayfield()
-	p.Piece = game.T(game.Coords{3, 18})
-
 	defer initLoggerOutput().Close()
 	defer ncurses.Init()()
 
 	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
 	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
 	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+
+	p := game.NewStdPlayfield()
+	p.Piece = game.GetRandomPiece()
 
 	b := make([]byte, 1)
 	var transform game.Transform
