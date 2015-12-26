@@ -58,6 +58,12 @@ main:
 func changeOrInitPiece(p *game.Playfield) {
 	stopInterval()
 	game.ChangeOrInitPiece(p)
+	if p.NbCompleteLines() > 0 {
+		render(*p)
+		time.Sleep(time.Millisecond * 200)
+		p.RemoveLines()
+		render(*p)
+	}
 	stopInterval = interval.Start(func() {
 		if applyTransform(game.MoveDown, p, false) == false {
 			changeOrInitPiece(p)

@@ -61,6 +61,67 @@ func (p Playfield) Fits(piece Tetromino) bool {
 	return true
 }
 
+// RemoveLines removes lines that are complete and returns the number of removed lines
+func (p *Playfield) RemoveLines() int {
+	return p.scrollLines(func(blocs []Bloc, currentY *int, total *int) {
+		if len(blocs) == p.Width {
+			p.removeBlocsWithY(*currentY)
+			p.stepDownBlocsOverY(*currentY)
+			*total++
+		} else {
+			*currentY++
+		}
+	})
+}
+
+// NbCompleteLines returns the number of lines that are complete
+func (p Playfield) NbCompleteLines() int {
+	return p.scrollLines(func(blocs []Bloc, currentY *int, total *int) {
+		if len(blocs) == p.Width {
+			*total++
+		}
+		*currentY++
+	})
+}
+
+func (p *Playfield) scrollLines(cb func(blocs []Bloc, currentY *int, total *int)) int {
+	total := 0
+	currentY := 0
+	for currentY < p.Height {
+		blocs := p.findBlocsWithY(currentY)
+		cb(blocs, &currentY, &total)
+	}
+	return total
+}
+
+func (p Playfield) findBlocsWithY(y int) []Bloc {
+	var blocs []Bloc
+	for _, b := range p.blocs {
+		if b.Y == y {
+			blocs = append(blocs, b)
+		}
+	}
+	return blocs
+}
+
+func (p *Playfield) removeBlocsWithY(y int) {
+	var blocs []Bloc
+	for _, b := range p.blocs {
+		if b.Y != y {
+			blocs = append(blocs, b)
+		}
+	}
+	p.blocs = blocs
+}
+
+func (p *Playfield) stepDownBlocsOverY(y int) {
+	for i, b := range p.blocs {
+		if b.Y > y {
+			p.blocs[i].Y--
+		}
+	}
+}
+
 func (p *Playfield) freezePiece() {
 	for _, part := range p.Piece.parts {
 		p.blocs = append(p.blocs, Bloc{X: part.X, Y: part.Y, Code: p.Piece.code})
