@@ -13,6 +13,9 @@ import (
 )
 
 var stopInterval = func() {}
+var reload = make(chan int)
+var quit = make(chan int)
+var inputs = make(chan string)
 
 func main() {
 	defer initLoggerOutput().Close()
@@ -22,19 +25,41 @@ func main() {
 	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
 	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 
+	go func() {
+		b := make([]byte, 1)
+		for {
+			os.Stdin.Read(b)
+			inputs <- string(b)
+		}
+	}()
+
+	go play()
+
+	for {
+		select {
+		case <-quit:
+			return
+		case <-reload:
+			go play()
+		}
+	}
+}
+
+func play() {
 	p := game.NewStdPlayfield()
 	changeOrInitPiece(&p)
 
-	b := make([]byte, 1)
 	var transform game.Transform
-main:
 	for {
 		render(p)
-		os.Stdin.Read(b)
-		c := string(b)
+		c := <-inputs
 		switch c {
 		case "q":
-			break main
+			quit <- 1
+			return
+		case "r":
+			reload <- 1
+			return
 		case "A", "k": // up
 			transform = game.Rotate
 		case "C", "l", "L", "$": // right
