@@ -9,10 +9,11 @@ const (
 
 // Playfield represents the current state of the game
 type Playfield struct {
-	Piece  Tetromino
-	Width  int
-	Height int
-	blocs  []Bloc
+	Piece      Tetromino
+	Width      int
+	Height     int
+	blocs      []Bloc
+	isGameOver bool
 }
 
 // Bloc represent a playfield fragment to be rendered
@@ -141,6 +142,12 @@ func ChangeOrInitPiece(p *Playfield) {
 		p.freezePiece()
 	}
 	p.Piece = getRandomPiece()
+	p.isGameOver = !p.Fits(p.Piece)
+}
+
+// IsGameOver is used to know if the current playfield is in a game over state
+func (p Playfield) IsGameOver() bool {
+	return p.isGameOver
 }
 
 // NewStdPlayfield builds a new playfield of 10x20

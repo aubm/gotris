@@ -49,10 +49,13 @@ func play() {
 	p := game.NewStdPlayfield()
 	changeOrInitPiece(&p)
 
+	var c string
 	var transform game.Transform
+
 	for {
 		render(p)
-		c := <-inputs
+		c = <-inputs
+
 		switch c {
 		case "q":
 			quit <- 1
@@ -72,6 +75,10 @@ func play() {
 			continue
 		}
 
+		if p.IsGameOver() {
+			continue
+		}
+
 		applyTransform(transform, &p, c == "L" || c == "$" || c == " " || c == "J" || c == "H" || c == "0")
 
 		if c == " " || c == "J" {
@@ -83,6 +90,11 @@ func play() {
 func changeOrInitPiece(p *game.Playfield) {
 	stopInterval()
 	game.ChangeOrInitPiece(p)
+
+	if p.IsGameOver() {
+		return
+	}
+
 	if p.NbCompleteLines() > 0 {
 		render(*p)
 		time.Sleep(time.Millisecond * 200)
