@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"time"
 
 	"github.com/aubm/gotris/game"
@@ -12,7 +11,6 @@ import (
 	"github.com/aubm/interval"
 )
 
-var stopInterval = func() {}
 var reload = make(chan int)
 var quit = make(chan int)
 var inputs = make(chan string)
@@ -20,10 +18,6 @@ var inputs = make(chan string)
 func main() {
 	defer initLoggerOutput().Close()
 	defer ncurses.Init()()
-
-	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
-	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
-	defer exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 
 	go func() {
 		b := make([]byte, 1)
@@ -47,7 +41,7 @@ func main() {
 
 func play() {
 	p := game.NewStdPlayfield()
-	changeOrInitPiece(&p)
+	stopInterval := changeOrInitPiece(&p)
 
 	var c string
 	var transform game.Transform
@@ -82,17 +76,17 @@ func play() {
 		applyTransform(transform, &p, c == "L" || c == "$" || c == " " || c == "J" || c == "H" || c == "0")
 
 		if c == " " || c == "J" {
-			changeOrInitPiece(&p)
+			stopInterval()
+			stopInterval = changeOrInitPiece(&p)
 		}
 	}
 }
 
-func changeOrInitPiece(p *game.Playfield) {
-	stopInterval()
+func changeOrInitPiece(p *game.Playfield) func() {
 	game.ChangeOrInitPiece(p)
 
 	if p.IsGameOver() {
-		return
+		return func() {}
 	}
 
 	if p.NbCompleteLines() > 0 {
@@ -101,7 +95,7 @@ func changeOrInitPiece(p *game.Playfield) {
 		p.RemoveLines()
 		render(*p)
 	}
-	stopInterval = interval.Start(func() {
+	return interval.Start(func() {
 		if applyTransform(game.MoveDown, p, false) == false {
 			changeOrInitPiece(p)
 		}
